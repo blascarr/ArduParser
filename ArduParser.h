@@ -55,9 +55,11 @@
       arduParser(String START_CMD, String DELIMITER_CMD, String END_CMD);
       void define(String START_CMD, String DELIMITER_CMD, String END_CMD);
 
-      parseString parser(String line);
+      parseString parser(String &line);
       String types(String dataIn);
-      
+      String cleanParser(String &line);
+
+      bool isValue(int pos);
       int getInt(int pos);
       long getLong(int pos);
       float getFloat(int pos);

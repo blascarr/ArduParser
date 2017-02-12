@@ -30,7 +30,7 @@
 #include <stdarg.h>
 
 //We use "..." to indicate that we use variadic arguments
-#define debug 0
+#define debug 1
 #define NUMARGS(...)  (sizeof((int[]){__VA_ARGS__})/sizeof(int))
 #define DEFINESTRUCT(...)  (dynamicstruct(NUMARGS(__VA_ARGS__), __VA_ARGS__))
 
@@ -46,48 +46,74 @@ void arduParser::define(String START_CMD, String DELIMITER_CMD, String END_CMD){
 	arduParser::END_CMD  = END_CMD;
 }
 
-parseString arduParser::parser(String line){
+String arduParser::cleanParser(String &line){
+
+	String subLine;
+	int STARTindex = 0;
+	int ENDindex = line.length();
+
+	if (arduParser::START_CMD.length()!=0){
+		
+		STARTindex = line.indexOf(arduParser::START_CMD) + arduParser::START_CMD.length();
+
+		if (!line.startsWith(arduParser::START_CMD)) {
+
+			if(debug)	Serial.println("Start command is not valid ");
+			arduParser::entry = false;
+			return "";
+		};
+	}
+
+	if (arduParser::END_CMD.length()!=0){
+		ENDindex = line.indexOf(arduParser::END_CMD);
+		if (!line.endsWith(arduParser::END_CMD)) {
+
+			if(debug)	Serial.println("End command is not valid ");
+			arduParser::entry = false;
+			return "";
+		};
+	}	
+
+	subLine = line.substring(STARTindex, ENDindex);
+	line.remove(0,subLine.length() + arduParser::START_CMD.length() + arduParser::END_CMD.length());
+
+	if(debug)	Serial.println(line);
+
+	return subLine;
+
+}
+
+parseString arduParser::parser(String &line){
 
 	int dataCount = 0;
 
 	arduParser::entry = false;
 	arduParser::timestamp = millis();
-	if (!line.startsWith(arduParser::START_CMD)) {
 
-		if(debug)	Serial.println("Start command is not valid ");
-		arduParser::entry = false;
-		return arduParser::data;
-	};
-	if (!line.endsWith(arduParser::END_CMD)) {
+	String subLine = arduParser::cleanParser(line);
 
-		if(debug)	Serial.println("End command is not valid ");
-		arduParser::entry = false;
-		return arduParser::data;
-	};
-
-	line = line.substring(1);
-
-	while(line != arduParser::END_CMD){
-		int indexTo = line.indexOf(arduParser::DELIMITER_CMD);
+	do{
+		if (debug) Serial.println (subLine);
+		int indexTo = subLine.indexOf(arduParser::DELIMITER_CMD);
 		
+		arduParser::data.dataString[dataCount] = subLine.substring(0,indexTo);
+		arduParser::data.dataString[dataCount].trim();
+		arduParser::data.typeString[dataCount]=types(arduParser::data.dataString[dataCount]);
+		dataCount++;
+
 		if (indexTo == -1){
-			int indexTo = line.indexOf(arduParser::END_CMD);
-			arduParser::data.dataString[dataCount++] = line.substring(0,indexTo);
-			
-			arduParser::data.typeString[dataCount-1]=types(arduParser::data.dataString[dataCount-1]);
+			//arduParser::data.dataString[dataCount] = line;
+			//arduParser::data.typeString[dataCount-1]=types(arduParser::data.dataString[dataCount-1]);
 			break;
 		}
 
-		arduParser::data.dataString[dataCount++] = line.substring(0,indexTo);
-		arduParser::data.typeString[dataCount-1]=types(arduParser::data.dataString[dataCount-1]);
-		line = line.substring(indexTo+1);
-	}
+		subLine = subLine.substring(indexTo+arduParser::DELIMITER_CMD.length());
+	}while(subLine.length() >0);
 
 	//Data struct return
 	arduParser::entry = true;
 	arduParser::ndata = dataCount;
 	return arduParser::data;
-	
 }
 
 String arduParser::types(String dataIn){
@@ -98,28 +124,34 @@ String arduParser::types(String dataIn){
 
 		if (indexInt < 0){
 			int dataInt = dataIn.toInt();
-			if(debug)	Serial.println("it's a integer number");
+			//if(debug)	Serial.println("it's a integer number");
 			return "int";
 		}else{
 			float dataFloat = dataIn.toFloat();
-			if(debug)	Serial.println("it's a float number");
+			//if(debug)	Serial.println("it's a float number");
 			return "float";
 		}
 	}else if (isGraph(dataIn[0])) {
 		String dataString = dataIn;
-		if(debug)	Serial.println("it's a valid hexadecimaldigit a-z A-Z");
+		//if(debug)	Serial.println("it's a valid hexadecimaldigit a-z A-Z");
 		return "string";
 	}else{
-		if(debug)	Serial.println("it's not a valid hexadecimaldigit");
+		//if(debug)	Serial.println("it's not a valid hexadecimaldigit");
 		return "unknown";
 	}
 }
 
-int arduParser::getInt(int pos){
+bool arduParser::isValue(int pos){
 	if (pos > numdata){
 		if(debug)	Serial.println("Position is greater than data structure");
-		return -1;
+		return false;
 	}else{
+		return true;
+	}
+}
+
+int arduParser::getInt(int pos){
+	if (arduParser::getInt(pos)){
 		if(arduParser::data.typeString[pos-1]=="int"){
 			if(debug)	Serial.println("Data Value is an Integer value");
 			long val = arduParser::data.dataString[pos-1].toInt();
@@ -132,14 +164,13 @@ int arduParser::getInt(int pos){
 			if(debug)	Serial.println("Data Value is not an Integer value");
 			return -1;
 		}
+	}else{
+		return -1;
 	}
 };
 
 long arduParser::getLong(int pos){
-	if (pos > numdata){
-		if(debug)	Serial.println("Position is greater than data structure");
-		return -1;
-	}else{
+	if (arduParser::getInt(pos)){
 		if(arduParser::data.typeString[pos-1]=="int"){
 			if(debug)	Serial.println("Data Value is an Integer value");
 			return arduParser::data.dataString[pos-1].toInt();
@@ -147,14 +178,13 @@ long arduParser::getLong(int pos){
 			if(debug)	Serial.println("Data Value is not an Integer value");
 			return -1;
 		}
+	}else{
+		return -1;
 	}
 };
 
 float arduParser::getFloat(int pos){
-	if (pos > numdata){
-		if(debug)	Serial.println("Position is greater than data structure");
-		return -1;
-	}else{
+	if (arduParser::getInt(pos)){
 		if(arduParser::data.typeString[pos-1]=="float"){
 			if(debug)	Serial.println("Data Value is a Float value");
 			return arduParser::data.dataString[pos-1].toFloat();
@@ -162,14 +192,13 @@ float arduParser::getFloat(int pos){
 			if(debug)	Serial.println("Data Value is not a Float value");
 			return -1;
 		}
+	}else{
+		return -1;
 	}
 };
 
 String arduParser::getString(int pos){
-	if (pos > numdata){
-		if(debug)	Serial.println("Position is greater than data structure");
-		return "";
-	}else{
+	if (arduParser::getInt(pos)){
 		if(arduParser::data.typeString[pos-1]=="string"){
 			if(debug)	Serial.println("Data Value is a String value");
 			return arduParser::data.dataString[pos-1];
@@ -177,9 +206,10 @@ String arduParser::getString(int pos){
 			if(debug)	Serial.println("Data Value is not a String value");
 			return "";
 		}
+	}else{
+		return "";
 	}
 };
-
 
 void dynamicstruct(int numargs, ...){
 	int total = 0;

@@ -20,7 +20,8 @@ void loop() {
   delay(50);
   
   while (Serial.available()){
-      parser.parser (Serial.readString());
+      String line = Serial.readString();
+      parser.parser (line);
       parser.entry = true;
   }
       if (parser.entry){
