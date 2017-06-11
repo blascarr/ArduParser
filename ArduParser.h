@@ -4,7 +4,7 @@
   ArduParser
   Name    : Blascarr
   Description: ArduParser.h
-  version : 1.0
+  version : 2.0
 
   ArduParser is a library to perform different protocols based on reading characters.
   Some applications works with different protocols defined by different authors, 
@@ -23,6 +23,10 @@
   
 
   **
+  
+  Blascarr invests time and resources providing this open source code like some other libraries, please
+  respect the job and support open-source software.
+
   Written by Adrian for Blascarr
 */
 
