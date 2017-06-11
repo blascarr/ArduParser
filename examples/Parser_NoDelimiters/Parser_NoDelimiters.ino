@@ -3,23 +3,20 @@
 //Definition bauds per second for Serial Communication (ESP8266, BlueTooth, Serial)
 long bps=9600;
 
-arduParser parserApp ("","|",""); 
+arduParser pattern ("","|",""); 
 
 void setup() {
   Serial.begin(bps);
   Serial.println("ArduParser Init!");
   
   String BTLine = "FW|C|10|3.123";
-  
-  parseString v = parserApp.parser(BTLine);
+  pattern.parser(BTLine);
   Serial.print ("N Data: ");
-  Serial.println(parserApp.ndata);
+  Serial.println(pattern.ndata);
   Serial.println();
 
-  for(int n=0; n < parserApp.ndata; n++){
-    Serial.print(v.typeString[n]);
-    Serial.print(" : ");
-    Serial.println(v.dataString[n]);
+  for(int n=0; n < pattern.ndata; n++){
+    Serial.println(pattern.data[n]);
   }
 }
 

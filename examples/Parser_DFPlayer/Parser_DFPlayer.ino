@@ -1,7 +1,7 @@
 #include <ArduParser.h>
 #include <DFPlayer_Mini_Mp3.h>
 SoftwareSerial DFPlayer(9, 10); // RX, TX
-arduParser parser("<","|",">");
+arduParser pattern("<","|",">");
 int bps =9600;
 
 void setup() {
@@ -16,41 +16,41 @@ void setup() {
 }
 
 void loop() {
-  parser.entry= false;
+  pattern.entry= false;
   delay(50);
   
   while (Serial.available()){
       String line = Serial.readString();
-      parser.parser (line);
-      parser.entry = true;
+      pattern.parser (line);
   }
-      if (parser.entry){
-        Serial.println("Hi Stewie");
-        Serial.println(parser.data.dataString[0]);
   
-        if(parser.data.dataString[0]=="NX"){
-          playnext();
-        }
-        
-        if(parser.data.dataString[0]=="PL"){
-          int nSong = parser.getInt(2);
-          Serial.println("Play Track no: ");
-          Serial.println(nSong);
-          playSong(parser.getInt(2));
-        }
-        
-        if(parser.data.dataString[0]=="PS"){
-          mp3_pause ();
-        }
-        
-        if(parser.data.dataString[0]=="ST"){
-          mp3_stop ();
-        }
-        
-        if(parser.data.dataString[0]=="PV"){
-          mp3_prev ();
-        }
+  if (pattern.entry){
+    Serial.println("Hi Stewie");
+    Serial.println(pattern.data[0]);
+
+    if(pattern.data[0]=="NX"){
+      playnext();
     }
+    
+    if(pattern.data[0]=="PL"){
+      int nSong = pattern.getInt(2);
+      Serial.println("Play Track no: ");
+      Serial.println(nSong);
+      playSong(pattern.getInt(2));
+    }
+    
+    if(pattern.data[0]=="PS"){
+      mp3_pause ();
+    }
+    
+    if(pattern.data[0]=="ST"){
+      mp3_stop ();
+    }
+    
+    if(pattern.data[0]=="PV"){
+      mp3_prev ();
+    }
+}
 }
 
 void playnext(){

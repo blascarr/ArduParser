@@ -50,7 +50,7 @@ class arduParser {
     String END_CMD;
     bool entry = false;
     int ndata;
-    String dataString[nStack];
+    String data[nStack];
     
     arduParser(String START_CMD, String DELIMITER_CMD, String END_CMD){
       arduParser::START_CMD  =  START_CMD;
@@ -105,8 +105,8 @@ class arduParser {
       do{
         int indexTo = subLine.indexOf(arduParser::DELIMITER_CMD);
         
-        arduParser::dataString[dataCount] = subLine.substring(0,indexTo);
-        arduParser::dataString[dataCount].trim();
+        arduParser::data[dataCount] = subLine.substring(0,indexTo);
+        arduParser::data[dataCount].trim();
         dataCount++;
     
         if (indexTo == -1){
@@ -119,20 +119,20 @@ class arduParser {
       //Data struct return
       arduParser::entry = true;
       arduParser::ndata = dataCount;
-      //return parser::dataString;
+      //return parser::data;
     };
 
     bool isValue(int pos){
-      return arduParser::dataString[pos].toInt();
+      return arduParser::data[pos].toInt();
     };
     
     int getInt(int pos){
-      String dataIn = arduParser::dataString[pos];
+      String dataIn = arduParser::data[pos];
       int num;
       //Serial.print("Dato Int--> ");Serial.println(dataIn);
       if((isDigit(dataIn[0])) || dataIn[0]== '-' ){
         if(dataIn[0]== '-'){
-          int index_minus = arduParser::dataString[pos].indexOf('-');
+          int index_minus = arduParser::data[pos].indexOf('-');
           num = dataIn.substring(index_minus).toInt()*(-1);
         }else{
           num = dataIn.toInt();
@@ -142,11 +142,11 @@ class arduParser {
     };
 
     float getFloat(int pos){
-      String dataIn = arduParser::dataString[pos];
+      String dataIn = arduParser::data[pos];
       float num;
       if((isDigit(dataIn[0])) || dataIn[0]== '-' ){
         if(dataIn[0]== '-'){
-          int index_minus = arduParser::dataString[pos].indexOf('-');
+          int index_minus = arduParser::data[pos].indexOf('-');
           num = dataIn.substring(index_minus).toFloat()*(-1);
         }else{
           num = dataIn.toFloat();
