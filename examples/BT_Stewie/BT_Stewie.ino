@@ -23,33 +23,33 @@ void loop() {
       parser.parser (Serial.readString());
       parser.entry = true;
   }
-      if (parser.entry){
-        Serial.println("Hi Stewie");
-        Serial.println(parser.data.dataString[0]);
-  
-        if(parser.data.dataString[0]=="NX"){
-          playnext();
-        }
-        
-        if(parser.data.dataString[0]=="PL"){
-          int nSong = parser.getInt(2);
-          Serial.println("Play Track no: ");
-          Serial.println(nSong);
-          playSong(parser.getInt(2));
-        }
-        
-        if(parser.data.dataString[0]=="PS"){
-          mp3_pause ();
-        }
-        
-        if(parser.data.dataString[0]=="ST"){
-          mp3_stop ();
-        }
-        
-        if(parser.data.dataString[0]=="PV"){
-          mp3_prev ();
-        }
+  if (parser.entry){
+    Serial.println("Hi Stewie");
+    Serial.println(parser.data.dataString[0]);
+
+    if(parser.data.dataString[0]=="NX"){
+      playnext();
     }
+    
+    if(parser.data.dataString[0]=="PL"){
+      int nSong = parser.getInt(2);
+      Serial.println("Play Track no: ");
+      Serial.println(nSong);
+      playSong(parser.getInt(2));
+    }
+    
+    if(parser.data.dataString[0]=="PS"){
+      mp3_pause ();
+    }
+    
+    if(parser.data.dataString[0]=="ST"){
+      mp3_stop ();
+    }
+    
+    if(parser.data.dataString[0]=="PV"){
+      mp3_prev ();
+    }
+  }
 }
 
 void playnext(){
