@@ -36,34 +36,121 @@
 #include "WProgram.h"
 #endif
  
-#include <structconfig.h> 
+#define debug 0
+#define nStack 7
+  
+class arduParser {
+  public:
+    String START_CMD;
+    String DELIMITER_CMD;
+    String END_CMD;
+    bool entry = false;
+    int ndata;
+    String dataString[nStack];
+    
+    arduParser(String START_CMD, String DELIMITER_CMD, String END_CMD){
+      arduParser::START_CMD  =  START_CMD;
+      arduParser::DELIMITER_CMD  =  DELIMITER_CMD;
+      arduParser::END_CMD  = END_CMD;
+    };
+    
+    void define(String START_CMD, String DELIMITER_CMD, String END_CMD){
+      arduParser::START_CMD  =  START_CMD;
+      arduParser::DELIMITER_CMD  =  DELIMITER_CMD;
+      arduParser::END_CMD  = END_CMD;
+    };
 
-  class arduParser {
+    // Clean the input String and obtain the same info without start and end delimiters
+    String cleanParser(String &line){
+      String subLine;
+      int STARTindex = 0;
+      int ENDindex = line.length();
+    
+      if (arduParser::START_CMD.length()!=0){
+        
+        STARTindex = line.indexOf(arduParser::START_CMD) + arduParser::START_CMD.length();
+    
+        if (!line.startsWith(arduParser::START_CMD)) {
+    
+          arduParser::entry = false;
+          return "";
+        };
+      }
+    
+      if (arduParser::END_CMD.length()!=0){
+        ENDindex = line.indexOf(arduParser::END_CMD);
+        if (!line.endsWith(arduParser::END_CMD)) {
+    
+          arduParser::entry = false;
+          return "";
+        };
+      } 
+    
+      subLine = line.substring(STARTindex, ENDindex);
+      line.remove(0,subLine.length() + arduParser::START_CMD.length() + arduParser::END_CMD.length());
+      return subLine;
+    };
 
-    public:
-      
-      String START_CMD;
-      String DELIMITER_CMD;
-      String END_CMD;
+    
+    void parser(String &line){
+      int dataCount = 0;
+      arduParser::entry = false;
+    
+      String subLine = arduParser::cleanParser(line);
+    
+      do{
+        int indexTo = subLine.indexOf(arduParser::DELIMITER_CMD);
+        
+        arduParser::dataString[dataCount] = subLine.substring(0,indexTo);
+        arduParser::dataString[dataCount].trim();
+        dataCount++;
+    
+        if (indexTo == -1){
+          break;
+        }
+    
+        subLine = subLine.substring(indexTo+arduParser::DELIMITER_CMD.length());
+      }while(subLine.length() >0);
+    
+      //Data struct return
+      arduParser::entry = true;
+      arduParser::ndata = dataCount;
+      //return parser::dataString;
+    };
 
-      bool entry = false;
-      int ndata;
-      unsigned long timestamp;
-      
-      parseString data;
-      
-      arduParser(String START_CMD, String DELIMITER_CMD, String END_CMD);
-      void define(String START_CMD, String DELIMITER_CMD, String END_CMD);
+    bool isValue(int pos){
+      return arduParser::dataString[pos].toInt();
+    };
+    
+    int getInt(int pos){
+      String dataIn = arduParser::dataString[pos];
+      int num;
+      //Serial.print("Dato Int--> ");Serial.println(dataIn);
+      if((isDigit(dataIn[0])) || dataIn[0]== '-' ){
+        if(dataIn[0]== '-'){
+          int index_minus = arduParser::dataString[pos].indexOf('-');
+          num = dataIn.substring(index_minus).toInt()*(-1);
+        }else{
+          num = dataIn.toInt();
+        }
+        return num;
+      }
+    };
 
-      parseString parser(String &line);
-      String types(String dataIn);
-      String cleanParser(String &line);
+    float getFloat(int pos){
+      String dataIn = arduParser::dataString[pos];
+      float num;
+      if((isDigit(dataIn[0])) || dataIn[0]== '-' ){
+        if(dataIn[0]== '-'){
+          int index_minus = arduParser::dataString[pos].indexOf('-');
+          num = dataIn.substring(index_minus).toFloat()*(-1);
+        }else{
+          num = dataIn.toFloat();
+        }
+      }
+      return num;
+    };
+};
 
-      bool isValue(int pos);
-      int getInt(int pos);
-      long getLong(int pos);
-      float getFloat(int pos);
-      String getString(int pos);
-  };
 
 #endif
